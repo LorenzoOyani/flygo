@@ -1,4 +1,6 @@
 package com.org.flygo.dto;
 
-public class SignUpRequest {
+import lombok.NonNull;
+
+public record SignUpRequest(String fullName, String email, String password) {
 }

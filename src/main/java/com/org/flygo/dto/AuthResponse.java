@@ -1,4 +1,6 @@
 package com.org.flygo.dto;
 
-public class AuthResponse {
+import java.util.UUID;
+
+public record AuthResponse(UUID id, String fullName, String email, OnBoardingState status) {
 }
