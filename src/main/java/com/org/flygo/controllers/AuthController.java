@@ -1,8 +1,10 @@
-package com.org.flygo.api;
+package com.org.flygo.controllers;
 
 import com.org.flygo.dto.AuthResponse;
+import com.org.flygo.dto.LoginResponse;
 import com.org.flygo.dto.SignUpRequest;
 import com.org.flygo.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,8 +20,15 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<?> authSignup(@RequestBody SignUpRequest request){
+    public ResponseEntity<AuthResponse> authSignup(@Valid @RequestBody SignUpRequest request){
         AuthResponse response = authService.register(request);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginResponse request){
+
+
+        return ResponseEntity.ok().body(request);
     }
 }
