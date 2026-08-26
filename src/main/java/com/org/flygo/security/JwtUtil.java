@@ -1,52 +1,66 @@
 package com.org.flygo.security;
 
 import com.org.flygo.domain.UserEntity;
-import com.org.flygo.dto.UserRoles;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
+import org.flywaydb.core.internal.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.time.Instant;
-import java.util.Base64;
 import java.util.Date;
 
 @Component
 @RequiredArgsConstructor
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
+    private static final Logger log = LoggerFactory.getLogger(JwtUtil.class);
 
-    @Value("${access-token-expiry-ms}")
-    private long accessExpirationTime;
+    private final SecretKey signingKey;
 
-
-
-    private Key getSigningKey() {
-        byte[] keyBytes = Base64.getDecoder().decode(jwtSecret);
-        return Keys.hmacShaKeyFor(keyBytes);
-    }
+    @Value("${jwt.access-token-expiry-ms}")
+    private long accessTokenExpiryMs;
 
     public String generateToken(UserEntity user) {
-        return buildToken(user.getEmail(), user.getRole(), accessExpirationTime);
-    }
-
-
-    private String buildToken(String subject, UserRoles roles,  long accessExpirationTime) {
         Instant now = Instant.now();
 
         return Jwts.builder()
-                .subject(subject)
+                .subject(user.getEmail())
+                .claim("role", user.getRole().name())
                 .issuedAt(Date.from(now))
-                .claim("user", roles.name())
-                .expiration(Date.from(now.plusMillis(accessExpirationTime)))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .expiration(Date.from(now.plusMillis(accessTokenExpiryMs)))
+                .signWith(signingKey)
                 .compact();
+    }
 
+    public Claims parseAndValidate(String token) {
+        return Jwts.parser()
+                .verifyWith(signingKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
+    public String extractUsername(String token) {
+        return parseAndValidate(token).getSubject();
+    }
+
+    public boolean validateToken(String token) {
+        if (!StringUtils.hasText(token)) {
+            return false;
+        }
+
+        try {
+            parseAndValidate(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException exception) {
+            log.debug("JWT rejected: {}", exception.getMessage());
+            return false;
+        }
     }
 }
-
