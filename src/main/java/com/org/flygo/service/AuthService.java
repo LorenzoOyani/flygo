@@ -1,10 +1,7 @@
 package com.org.flygo.service;
 
-import com.org.flygo.dto.AuthResponse;
-import com.org.flygo.dto.LoginRequest;
-import com.org.flygo.dto.LoginResponse;
-import com.org.flygo.dto.SignUpRequest;
-import org.springframework.stereotype.Service;
+import com.org.flygo.dto.*;
+import jakarta.validation.constraints.NotBlank;
 
 
 public interface AuthService {
@@ -12,6 +9,8 @@ public interface AuthService {
     AuthResponse register(SignUpRequest request);
 
     LoginResponse login(LoginRequest loginRequest);
+
+    AuthResponse refreshToken(@NotBlank String request);
 
 
 

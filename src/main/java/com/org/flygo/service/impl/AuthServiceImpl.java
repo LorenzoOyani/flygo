@@ -11,6 +11,7 @@ import com.org.flygo.security.JwtUtil;
 import com.org.flygo.service.AuthService;
 import com.org.flygo.service.RefreshTokenService;
 import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,10 +20,12 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.Locale;
 
 @Service
+@Validated
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
@@ -106,8 +109,18 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    ///  still to add
-    /// rotate Refresh tokens implementations
+    @Override
+    public AuthResponse refreshToken(@NotBlank String refreshToken) {
+        LoginResponse response = refreshTokenService.refresh(refreshToken);
+
+        return new AuthResponse(
+                response.id(),
+                response.accessToken(),
+                response.refreshToken(),
+                response.status()
+        );
+    }
+
 
     private AuthResponse generateToken(UserEntity user) {
         String token = jwtUtil.generateToken(user);

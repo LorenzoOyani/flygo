@@ -1,15 +1,15 @@
 package com.org.flygo.service.impl;
 
-import com.org.flygo.agents.User;
 import com.org.flygo.domain.UserEntity;
 import com.org.flygo.dto.LoginResponse;
+import com.org.flygo.dto.RefreshTokenResult;
 import com.org.flygo.exception.InvalidTokenException;
-import com.org.flygo.mapper.UserMapper;
 import com.org.flygo.persistence.RefreshTokenRepository;
 import com.org.flygo.security.JwtUtil;
 import com.org.flygo.security.entity.RefreshToken;
 import com.org.flygo.service.RefreshTokenService;
 import com.org.flygo.util.TokenHasher;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +23,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RefreshTokenImpl implements RefreshTokenService {
 
-    private final UserMapper userMapper;
     private final TokenHasher tokenHasher;
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtUtil jwtUtil;
@@ -61,6 +60,7 @@ public class RefreshTokenImpl implements RefreshTokenService {
     **/
 
     @Override
+    @Transactional
     public UserEntity validateAndGetUser(String rawToken) {
         String hashToken = tokenHasher.hash(rawToken);
 
@@ -70,6 +70,7 @@ public class RefreshTokenImpl implements RefreshTokenService {
                 ).orElseThrow(() -> new InvalidTokenException("Refresh token not found"));
 
         if (refreshToken.isRevoked()) {
+            revokeAll(refreshToken.getUser());
             throw new InvalidTokenException("Refresh token is revoked");
         }
 
@@ -82,6 +83,7 @@ public class RefreshTokenImpl implements RefreshTokenService {
     }
 
     @Override
+    @Transactional
     public void revoke(String rawToken) {
         String tokenHash =
                 tokenHasher.hash(rawToken);
@@ -96,11 +98,11 @@ public class RefreshTokenImpl implements RefreshTokenService {
     }
 
     @Override
-    public void revokeAll(User users) {
+    @Transactional
+    public void revokeAll(UserEntity users) {
 
-        UserEntity user = userMapper.toUserEntity(users);
         List<RefreshToken> refreshTokens =
-                refreshTokenRepository.findAllByUserAndRevokedAtIsNull(user);
+                refreshTokenRepository.findAllByUserAndRevokedAtIsNull(users);
 
         refreshTokens.forEach(
                 RefreshToken::revoke
@@ -108,19 +110,52 @@ public class RefreshTokenImpl implements RefreshTokenService {
     }
 
     @Override
+    @Transactional
     public LoginResponse refresh(String rawRefreshToken) {
 
         UserEntity user = this.validateAndGetUser(rawRefreshToken);
 
+        revoke(rawRefreshToken);
+
         String newAccessToken = this.jwtUtil.generateToken(user);
+        String newRefreshToken = this.createRefreshToken(user);
 
         return new LoginResponse(
                 user.getId(),
                 newAccessToken,
-                rawRefreshToken,
+                newRefreshToken,
                 user.getStatus()
 
         );
+    }
+
+    @Override
+    public RefreshTokenResult rotateRefreshToken(String rawToken) {
+        String hashedToken = tokenHasher.hash(rawToken);
+
+        RefreshToken existing = refreshTokenRepository.findByTokenHash(hashedToken)
+                .orElseThrow(() -> new InvalidTokenException("Invalid refresh token"));
+
+        if (existing.isRevoked()) {
+            // Token reuse detected — someone used an already-rotated token.
+            // Revoke the entire session/family as a precaution.
+            refreshTokenRepository.revokeAllForUser(existing.getUser().getId());
+            throw new InvalidTokenException("Refresh token reuse detected — session revoked");
+        }
+
+        if (existing.isExpired()) {
+            throw new InvalidTokenException("Refresh token expired");
+        }
+
+        // Revoke the old token (single-use enforcement)
+        existing.revoke();
+        refreshTokenRepository.save(existing);
+
+        // Issue a new one
+        UserEntity user = existing.getUser();
+        String newRawToken = createRefreshToken(user);
+
+        return new RefreshTokenResult(newRawToken, user);
     }
 
     private String generateRawToken() {

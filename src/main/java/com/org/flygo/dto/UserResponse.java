@@ -2,10 +2,12 @@ package com.org.flygo.dto;
 
 import java.util.UUID;
 
-public record LoginResponse(
+public record UserResponse(
+
         UUID id,
-        String accessToken,
-        String refreshToken,
+        String fullName,
+        String email,
+        UserRoles role,
         OnBoardingState status
 
 ) {

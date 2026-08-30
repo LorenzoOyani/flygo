@@ -19,7 +19,7 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class JwtUtil {
 
-    private static final Logger log = LoggerFactory.getLogger(JwtUtil.class);
+//    private static final Logger log = LoggerFactory.getLogger(JwtUtil.class);
 
     private final SecretKey signingKey;
 
@@ -46,21 +46,21 @@ public class JwtUtil {
                 .getPayload();
     }
 
-    public String extractUsername(String token) {
-        return parseAndValidate(token).getSubject();
-    }
-
-    public boolean validateToken(String token) {
-        if (!StringUtils.hasText(token)) {
-            return false;
-        }
-
-        try {
-            parseAndValidate(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException exception) {
-            log.debug("JWT rejected: {}", exception.getMessage());
-            return false;
-        }
-    }
+//    public String extractUsername(String token) {
+//        return parseAndValidate(token).getSubject();
+//    }
+//
+//    public boolean validateToken(String token) {
+//        if (!StringUtils.hasText(token)) {
+//            return false;
+//        }
+//
+//        try {
+//            parseAndValidate(token);
+//            return true;
+//        } catch (JwtException | IllegalArgumentException exception) {
+//            log.debug("JWT rejected: {}", exception.getMessage());
+//            return false;
+//        }
+//    }
 }
