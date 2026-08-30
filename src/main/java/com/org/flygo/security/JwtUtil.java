@@ -23,7 +23,7 @@ public class JwtUtil {
 
     private final SecretKey signingKey;
 
-    @Value("${jwt.access-token-expiry-ms}")
+    @Value("${access-token-expiry-ms}")
     private long accessTokenExpiryMs;
 
     public String generateToken(UserEntity user) {

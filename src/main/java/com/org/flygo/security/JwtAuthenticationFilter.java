@@ -46,9 +46,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             Claims claims = jwtUtil.parseAndValidate(token);
-            String email = claims.getSubject();
+            String username = claims.getSubject();
 
-            if (!StringUtils.hasText(email)) {
+            if (!StringUtils.hasText(username)) {
                 response.sendError(
                         HttpServletResponse.SC_UNAUTHORIZED,
                         "Invalid token"
@@ -57,7 +57,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             UserDetails userDetails =
-                    userDetailsService.loadUserByUsername(email);
+                    userDetailsService.loadUserByUsername(username);
 
             UsernamePasswordAuthenticationToken authentication =
                     UsernamePasswordAuthenticationToken.authenticated(

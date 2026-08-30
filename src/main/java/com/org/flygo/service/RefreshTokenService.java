@@ -5,7 +5,7 @@ import com.org.flygo.domain.UserEntity;
 import com.org.flygo.dto.LoginResponse;
 
 public interface RefreshTokenService {
-    String createRefreshToken(User user);
+    String createRefreshToken(UserEntity user);
 
     UserEntity validateAndGetUser(String rawToken);
 

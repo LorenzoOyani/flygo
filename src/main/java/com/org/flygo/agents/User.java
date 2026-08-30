@@ -2,6 +2,8 @@ package com.org.flygo.agents;
 
 import com.org.flygo.dto.OnBoardingState;
 import com.org.flygo.dto.UserRoles;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.*;
 
 import java.util.UUID;
@@ -21,7 +23,11 @@ public class User {
 
     private String password;
 
-    private OnBoardingState status;
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private OnBoardingState status = OnBoardingState.DOCUMENTS_REQUIRED;
 
-    private UserRoles role;
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private UserRoles role = UserRoles.CUSTOMER;
 }

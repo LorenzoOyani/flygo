@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "users")
 public class UserEntity extends BaseEntity {
 
-    @Column(name = "name", unique = true, nullable = false)
+    @Column(name = "full_name", unique = true, nullable = false)
     private String fullName;
 
     @Column(name = "email", unique = true, nullable = false)

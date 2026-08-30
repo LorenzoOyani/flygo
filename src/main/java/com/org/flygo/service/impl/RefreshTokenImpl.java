@@ -36,15 +36,14 @@ public class RefreshTokenImpl implements RefreshTokenService {
 
 
     @Override
-    public String createRefreshToken(User users) {
+    public String createRefreshToken(UserEntity users) {
 
         final String rawToken = generateRawToken();
 
         String hashToken = tokenHasher.hash(rawToken);
-        UserEntity user = userMapper.toUserEntity(users);
 
         RefreshToken refreshToken = new RefreshToken(
-                user,
+                users,
                 hashToken,
                 Instant.now().plus(
                         REFRESH_TOKEN_DAYS, ChronoUnit.DAYS

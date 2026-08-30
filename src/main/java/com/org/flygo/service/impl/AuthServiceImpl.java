@@ -5,7 +5,6 @@ import com.org.flygo.domain.UserEntity;
 import com.org.flygo.dto.*;
 import com.org.flygo.exception.InvalidCredentialsException;
 import com.org.flygo.exception.UserAlreadyExists;
-import com.org.flygo.exception.UserNotFoundException;
 import com.org.flygo.mapper.UserMapper;
 import com.org.flygo.persistence.UserRepository;
 import com.org.flygo.security.JwtUtil;
@@ -18,14 +17,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
 import java.util.Locale;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +36,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
 
     @Override
+    @Transactional
     public AuthResponse register(SignUpRequest request) {
         if (userRepository.existsByEmail(request.email())) {
             throw new UserAlreadyExists("user already exits");
@@ -50,6 +46,7 @@ public class AuthServiceImpl implements AuthService {
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
                 .role(UserRoles.CUSTOMER)
+                .status(OnBoardingState.DOCUMENTS_REQUIRED)
                 .build();
 
         UserEntity user1 = userMapper.toUserEntity(user);
@@ -75,10 +72,6 @@ public class AuthServiceImpl implements AuthService {
                                     loginRequest.password()
                             )
                     );
-//
-//            SecurityContextHolder
-//                    .getContext()
-//                    .setAuthentication(authentication);
 
             logger.info(
                     "User authenticated successfully: {}",
@@ -91,19 +84,12 @@ public class AuthServiceImpl implements AuthService {
                                     "Invalid email or password"
                             )
                     );
-            User user1 = userMapper.toUserEntity(user);
-
-//            if (!user.isEnabled()) {
-//                throw new AccountDisabledException(
-//                        "Account is disabled"
-//                );
-//            }
 
             String accessToken =
                     jwtUtil.generateToken(user);
 
             String refreshToken =
-                    refreshTokenService.createRefreshToken(user1);
+                    refreshTokenService.createRefreshToken(user);
 
             return new LoginResponse(
                     user.getId(),
@@ -124,10 +110,9 @@ public class AuthServiceImpl implements AuthService {
     /// rotate Refresh tokens implementations
 
     private AuthResponse generateToken(UserEntity user) {
-        User user1 = userMapper.toUserEntity(user);
         String token = jwtUtil.generateToken(user);
 
-        String refreshToken = refreshTokenService.createRefreshToken(user1);
+        String refreshToken = refreshTokenService.createRefreshToken(user);
 
         /// todo-
         /// redis to cache refresh tokens (application write along cache);
