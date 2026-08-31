@@ -3,6 +3,8 @@ package com.org.flygo.service;
 import com.org.flygo.dto.*;
 import jakarta.validation.constraints.NotBlank;
 
+import java.util.UUID;
+
 
 public interface AuthService {
 
@@ -12,7 +14,9 @@ public interface AuthService {
 
     AuthResponse refreshToken(@NotBlank String request);
 
+    void logout(@NotBlank String rawRefreshToken);
 
+    void logoutAllDevices(UUID uuid);
 
 
 }

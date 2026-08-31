@@ -4,12 +4,16 @@ import com.org.flygo.agents.User;
 import com.org.flygo.domain.UserEntity;
 import com.org.flygo.dto.*;
 import com.org.flygo.exception.InvalidCredentialsException;
+import com.org.flygo.exception.InvalidTokenException;
 import com.org.flygo.exception.UserAlreadyExists;
 import com.org.flygo.mapper.UserMapper;
+import com.org.flygo.persistence.RefreshTokenRepository;
 import com.org.flygo.persistence.UserRepository;
 import com.org.flygo.security.JwtUtil;
+import com.org.flygo.security.entity.RefreshToken;
 import com.org.flygo.service.AuthService;
 import com.org.flygo.service.RefreshTokenService;
+import com.org.flygo.util.TokenHasher;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.Locale;
+import java.util.UUID;
 
 @Service
 @Validated
@@ -37,6 +42,9 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
     private final AuthenticationManager authenticationManager;
+
+    private final TokenHasher tokenHasher;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
     @Transactional
@@ -119,6 +127,24 @@ public class AuthServiceImpl implements AuthService {
                 response.refreshToken(),
                 response.status()
         );
+    }
+
+    @Override
+    @Transactional
+    public void logout(String rawRefreshToken) {
+        String hash = tokenHasher.hash(rawRefreshToken);
+
+        RefreshToken storedToken = refreshTokenRepository.findByTokenHash(hash)
+                .orElseThrow(() -> new InvalidTokenException("Refresh token not found"));
+
+        storedToken.revoke();
+        refreshTokenRepository.save(storedToken);
+    }
+
+    @Override
+    @Transactional
+    public void logoutAllDevices(UUID uuid) {
+        refreshTokenRepository.revokeAllForUser(uuid);
     }
 
 
