@@ -8,8 +8,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,6 +53,25 @@ public class AuthController {
 
             return ResponseEntity.ok(loginResponse);
         }
+
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+            @CookieValue("refreshToken") String rawRefreshToken,
+            HttpServletResponse response) {
+
+        authService.logout(rawRefreshToken);
+
+        ResponseCookie clearedCookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/api/v1/auth")
+                .maxAge(0)
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, clearedCookie.toString());
+
+        return ResponseEntity.noContent().build();
+    }
 
 
     @PostMapping("/refresh")
