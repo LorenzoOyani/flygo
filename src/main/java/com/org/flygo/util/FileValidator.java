@@ -1,5 +1,9 @@
 package com.org.flygo.util;
 
+import com.org.flygo.exception.InvalidFileException;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -15,4 +19,35 @@ public final class FileValidator {
     private static final List<String> ALLOWED_IMAGE_TYPES = Arrays.asList(
             "image/jpeg", "image/png"
     );
+
+    public static void validateImageFile(MultipartFile file) throws IOException {
+        validateFile(file);
+
+        // Check file size for images
+        if (file.getSize() > MAX_IMAGE_SIZE) {
+            throw new InvalidFileException("Image size exceeds the limit of 2MB");
+        }
+
+        // Validate image type
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
+            throw new InvalidFileException("Invalid image type. Allowed types: JPEG, PNG");
+        }
+
+    }
+
+    private static void validateFile(MultipartFile file) {
+        if (file == null) {
+            throw new InvalidFileException("File is null");
+        }
+
+        if (file.isEmpty()) {
+            throw new InvalidFileException("File is empty");
+        }
+
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || originalFilename.trim().isEmpty()) {
+            throw new InvalidFileException("Filename is missing");
+        }
+    }
 }

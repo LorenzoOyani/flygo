@@ -4,16 +4,14 @@ import com.org.flygo.dto.OnBoardingState;
 import com.org.flygo.dto.UserRoles;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Getter
+@Setter
 @Table(name = "users")
 public class UserEntity extends BaseEntity {
 
