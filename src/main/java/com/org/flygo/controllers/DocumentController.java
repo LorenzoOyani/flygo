@@ -39,6 +39,7 @@ public class DocumentController {
             @ApiResponse(responseCode = "401", description = "Missing or invalid token")
     })
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+
     public ResponseEntity<DocumentResponse> upload(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam("documentType") DocumentType documentType,

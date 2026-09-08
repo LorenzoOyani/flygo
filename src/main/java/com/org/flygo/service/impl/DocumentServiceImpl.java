@@ -31,11 +31,11 @@ public class DocumentServiceImpl implements DocumentService {
 
     private static final Logger logger = LoggerFactory.getLogger(DocumentServiceImpl.class);
 
-    private static final long MAX_FILE_SIZE_BYTES = 10L * 1024 * 1024; // 10MB
-
-    private static final List<String> ALLOWED_CONTENT_TYPES = List.of(
-            "image/jpeg", "image/png", "application/pdf"
-    );
+//    private static final long MAX_FILE_SIZE_BYTES = 10L * 1024 * 1024; // 10MB
+//
+//    private static final List<String> ALLOWED_CONTENT_TYPES = List.of(
+//            "image/jpeg", "image/png", "application/pdf"
+//    );
     private final UserDocumentRepository userDocumentRepository;
     private final UserRepository userRepository;
     private final Cloudinary cloudinary;
@@ -43,7 +43,7 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     @Transactional
     public UserDocument uploadDocument(UUID userId, DocumentType documentType, MultipartFile file) throws IOException {
-        FileValidator.validateImageFile(file);
+        FileValidator.validateDocumentFile(file);
 
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));

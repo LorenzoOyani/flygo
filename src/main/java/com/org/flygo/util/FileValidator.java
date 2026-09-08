@@ -17,10 +17,10 @@ public final class FileValidator {
 
     // Allowed MIME types
     private static final List<String> ALLOWED_IMAGE_TYPES = Arrays.asList(
-            "image/jpeg", "image/png"
+            "image/jpeg", "image/png", "application/pdf", "image/JPEG", "image/PNG"
     );
 
-    public static void validateImageFile(MultipartFile file) throws IOException {
+    public static void validateDocumentFile(MultipartFile file) throws IOException {
         validateFile(file);
 
         // Check file size for images
@@ -30,9 +30,10 @@ public final class FileValidator {
 
         // Validate image type
         String contentType = file.getContentType();
-        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
+        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType.toLowerCase())) {
             throw new InvalidFileException("Invalid image type. Allowed types: JPEG, PNG");
         }
+
 
     }
 
