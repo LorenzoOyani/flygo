@@ -9,13 +9,12 @@ COPY pom.xml .
 
 RUN chmod +x mvnw
 
-# Cache Maven dependencies across builds
-RUN --mount=type=cache,target=/root/.m2 \
+RUN --mount=type=cache,id=maven-deps,target=/root/.m2 \
     ./mvnw dependency:go-offline -B
 
 COPY src src
 
-RUN --mount=type=cache,target=/root/.m2 \
+RUN --mount=type=cache,id=maven-deps,target=/root/.m2 \
     ./mvnw clean package -DskipTests
 
 
