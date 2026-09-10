@@ -169,7 +169,7 @@ POST /api/v1/auth/refresh
 *(Update this list as features land, so it stays accurate.)*
 
 ---
-
+  
 ## Questions / issues
 
 Ping Lawrence directly, or open an issue on this repo.
