@@ -31,11 +31,6 @@ public class DocumentServiceImpl implements DocumentService {
 
     private static final Logger logger = LoggerFactory.getLogger(DocumentServiceImpl.class);
 
-//    private static final long MAX_FILE_SIZE_BYTES = 10L * 1024 * 1024; // 10MB
-//
-//    private static final List<String> ALLOWED_CONTENT_TYPES = List.of(
-//            "image/jpeg", "image/png", "application/pdf"
-//    );
     private final UserDocumentRepository userDocumentRepository;
     private final UserRepository userRepository;
     private final Cloudinary cloudinary;

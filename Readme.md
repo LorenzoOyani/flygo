@@ -72,17 +72,31 @@ The API will be available at `http://localhost:8080`.
 
 ---
 
+## Live deployment
+
+The API is deployed and live at:
+
+```
+https://flygo-1.onrender.com
+```
+
+**Note:** hosted on Render's free tier, which spins down after ~15 minutes of inactivity. The first request after any idle period will be slow (up to ~60 seconds) while the container restarts — this is expected, not a bug.
+
 ## API documentation (Swagger)
 
-Once running, the full interactive API docs are at:
+**Live:**
+```
+https://flygo-1.onrender.com/swagger-ui/index.html
+```
 
+**Local:**
 ```
 http://localhost:8080/swagger-ui/index.html
 ```
 
 Raw OpenAPI spec (useful for generating a typed client):
 ```
-http://localhost:8080/v3/api-docs
+https://flygo-1.onrender.com/v3/api-docs
 ```
 
 **Using the "Authorize" button:** after logging in via `/api/v1/auth/login`, copy the `accessToken` from the response, click **Authorize** at the top of the Swagger page, paste it in (no need to type `Bearer` — Swagger adds that for you), and it will be attached automatically to every protected endpoint you test from then on.
@@ -169,7 +183,7 @@ POST /api/v1/auth/refresh
 *(Update this list as features land, so it stays accurate.)*
 
 ---
-  
+
 ## Questions / issues
 
 Ping Lawrence directly, or open an issue on this repo.
