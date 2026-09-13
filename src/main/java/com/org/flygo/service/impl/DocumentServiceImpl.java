@@ -38,7 +38,7 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     @Transactional
     public UserDocument uploadDocument(UUID userId, DocumentType documentType, MultipartFile file) throws IOException {
-        FileValidator.validateDocumentFile(file);
+        FileValidator.validateDocumentFile(documentType, file);
 
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
