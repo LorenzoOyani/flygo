@@ -3,6 +3,7 @@ package com.org.flygo.controllers;
 
 
 import com.org.flygo.dto.*;
+import com.org.flygo.security.auth0.OAuth2AwareLogoutHandler;
 import com.org.flygo.service.AuthService;
 import com.org.flygo.service.RefreshTokenService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,7 @@ public class AuthController {
     private static final Duration REFRESH_TOKEN_MAX_AGE = Duration.ofDays(30);
 
     private final AuthService authService;
+    private final OAuth2AwareLogoutHandler oAuth2AwareLogoutHandler;
 
     @Operation(summary = "Register a new user")
     @ApiResponses({
@@ -57,10 +60,10 @@ public class AuthController {
     @SecurityRequirements
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
-            @Valid @RequestBody LoginRequest request,
+            @Valid @RequestBody LoginRequest logoutRequest,
             HttpServletResponse response
     ) {
-        LoginResponse loginResponse = authService.login(request);
+        LoginResponse loginResponse = authService.login(logoutRequest);
         setRefreshTokenCookie(response, loginResponse.refreshToken());
         return ResponseEntity.ok(loginResponse);
     }
@@ -69,9 +72,11 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             @CookieValue(REFRESH_TOKEN_COOKIE) String rawRefreshToken,
+            HttpServletRequest request,
             HttpServletResponse response
     ) {
         authService.logout(rawRefreshToken);
+        oAuth2AwareLogoutHandler.logout(request, response, null);
         clearRefreshTokenCookie(response);
         return ResponseEntity.noContent().build();
     }
@@ -83,8 +88,6 @@ public class AuthController {
             HttpServletResponse response
     ) {
         AuthResponse authResponse = authService.refreshToken(rawRefreshToken);
-        // Rotation issues a NEW refresh token — the cookie must be updated to match,
-        // or the old (now-revoked) token stays cached in the browser and breaks the next refresh.
         setRefreshTokenCookie(response, authResponse.refreshToken());
         return ResponseEntity.ok(authResponse);
     }

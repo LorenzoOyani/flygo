@@ -1,4 +1,4 @@
-package com.org.flygo.security;
+package com.org.flygo.security.authentication;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,8 +27,8 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
         Map<String, Object> body = Map.of(
-                "status", HttpServletResponse.SC_UNAUTHORIZED,
-                "error", "Unauthorized",
+                "status", HttpServletResponse.SC_BAD_GATEWAY,
+                "error", HttpServletResponse.SC_UNAUTHORIZED,
                 "message", "Authentication is required to access this resource"
         );
 

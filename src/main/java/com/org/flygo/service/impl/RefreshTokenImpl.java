@@ -5,7 +5,7 @@ import com.org.flygo.dto.LoginResponse;
 import com.org.flygo.dto.RefreshTokenResult;
 import com.org.flygo.exception.InvalidTokenException;
 import com.org.flygo.persistence.RefreshTokenRepository;
-import com.org.flygo.security.JwtUtil;
+import com.org.flygo.security.authentication.JwtUtil;
 import com.org.flygo.security.entity.RefreshToken;
 import com.org.flygo.service.RefreshTokenService;
 import com.org.flygo.util.TokenHasher;

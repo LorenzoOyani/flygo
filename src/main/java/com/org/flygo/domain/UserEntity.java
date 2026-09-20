@@ -25,13 +25,17 @@ public class UserEntity extends BaseEntity {
     @Column(nullable = false)
     private OnBoardingState status;
 
-    @NotBlank
     @Column(name = "password", length = 500)
     private String password;
 
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private UserRoles role = UserRoles.CUSTOMER;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "auth_provider", nullable = false)
+    @Builder.Default
+    private AuthProvider authProvider = AuthProvider.LOCAL;
 
 
 }

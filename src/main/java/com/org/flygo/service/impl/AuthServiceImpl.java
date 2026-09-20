@@ -9,7 +9,7 @@ import com.org.flygo.exception.UserAlreadyExists;
 import com.org.flygo.mapper.UserMapper;
 import com.org.flygo.persistence.RefreshTokenRepository;
 import com.org.flygo.persistence.UserRepository;
-import com.org.flygo.security.JwtUtil;
+import com.org.flygo.security.authentication.JwtUtil;
 import com.org.flygo.security.entity.RefreshToken;
 import com.org.flygo.service.AuthService;
 import com.org.flygo.service.RefreshTokenService;

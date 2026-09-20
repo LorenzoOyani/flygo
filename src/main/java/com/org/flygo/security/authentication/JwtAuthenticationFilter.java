@@ -1,4 +1,4 @@
-package com.org.flygo.security;
+package com.org.flygo.security.authentication;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;

@@ -1,8 +1,12 @@
 package com.org.flygo.security.config;
 
+import com.org.flygo.infrastructure.LoginRateLimiterFilter;
+import com.org.flygo.security.auth0.Custom0auth2UserService;
+import com.org.flygo.security.auth0.OauthFailureLoginHandler;
+import com.org.flygo.security.auth0.OauthSuccessLoginHandler;
 import org.springframework.web.cors.CorsConfigurationSource;
-import com.org.flygo.security.JwtAuthenticationEntryPoint;
-import com.org.flygo.security.JwtAuthenticationFilter;
+import com.org.flygo.security.authentication.JwtAuthenticationEntryPoint;
+import com.org.flygo.security.authentication.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +18,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -32,6 +35,10 @@ public class SecurityConfiguration {
     private final PasswordEncoder passwordEncoder;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final LoginRateLimiterFilter loginRateLimiterFilter;
+    private final OauthFailureLoginHandler oauthFailureLoginHandler;
+    private final OauthSuccessLoginHandler oauthLoginHandler;
+    private final Custom0auth2UserService custom0auth2UserService;
 
 
     @Bean
@@ -57,8 +64,6 @@ public class SecurityConfiguration {
         return source;
     }
 
-
-
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider() {
         DaoAuthenticationProvider provider =
@@ -78,8 +83,7 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            DaoAuthenticationProvider daoAuthenticationProvider
-    ) throws Exception {
+            DaoAuthenticationProvider daoAuthenticationProvider)  {
 
         return http
                 .cors(cors->cors.configurationSource(corsConfigurationSource()))
@@ -102,10 +106,20 @@ public class SecurityConfiguration {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
-                                "/actuator/health"
+                                "/actuator/health",
+                                "/oauth2/**",
+                                "/login/oauth2/**"
                         ).permitAll()
                         .anyRequest().authenticated())
 
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo.userService(custom0auth2UserService))
+                        .successHandler(oauthLoginHandler)
+                        .failureHandler(oauthFailureLoginHandler)
+                )
+
+                .addFilterBefore(loginRateLimiterFilter,
+                        UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class

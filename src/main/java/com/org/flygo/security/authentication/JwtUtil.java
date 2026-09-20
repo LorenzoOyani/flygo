@@ -1,13 +1,9 @@
-package com.org.flygo.security;
+package com.org.flygo.security.authentication;
 
 import com.org.flygo.domain.UserEntity;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
-import org.flywaydb.core.internal.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +15,6 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class JwtUtil {
 
-//    private static final Logger log = LoggerFactory.getLogger(JwtUtil.class);
 
     private final SecretKey signingKey;
 
@@ -46,21 +41,4 @@ public class JwtUtil {
                 .getPayload();
     }
 
-//    public String extractUsername(String token) {
-//        return parseAndValidate(token).getSubject();
-//    }
-//
-//    public boolean validateToken(String token) {
-//        if (!StringUtils.hasText(token)) {
-//            return false;
-//        }
-//
-//        try {
-//            parseAndValidate(token);
-//            return true;
-//        } catch (JwtException | IllegalArgumentException exception) {
-//            log.debug("JWT rejected: {}", exception.getMessage());
-//            return false;
-//        }
-//    }
 }
