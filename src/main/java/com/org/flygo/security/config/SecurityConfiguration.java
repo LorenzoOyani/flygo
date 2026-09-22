@@ -46,8 +46,11 @@ public class SecurityConfiguration {
 
         org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
 
-        // Allow all origins for development
-        configuration.setAllowedOrigins(List.of("*"));
+        // Specific origins required — wildcard "*" is incompatible with credentials
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:3000",
+                "http://new-flygo.vercel.app/signup"
+        ));
 
         // Allow common HTTP methods
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
@@ -55,15 +58,14 @@ public class SecurityConfiguration {
         // Allow all headers
         configuration.setAllowedHeaders(List.of("*"));
 
-        // No credentials for wildcard origins
-        configuration.setAllowCredentials(false);
+        // Require, so the browser sends/receives the httpOnly refreshToken cookie cross-origin
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
     }
-
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider() {
         DaoAuthenticationProvider provider =
