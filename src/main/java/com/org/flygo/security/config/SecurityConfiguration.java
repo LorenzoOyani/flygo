@@ -49,6 +49,7 @@ public class SecurityConfiguration {
         // Specific origins required — wildcard "*" is incompatible with credentials
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
+                "https://localhost:3000",
                 "http://new-flygo.vercel.app/signup"
         ));
 

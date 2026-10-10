@@ -6,6 +6,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -28,9 +31,17 @@ public class UserEntity extends BaseEntity {
     @Column(name = "password", length = 500)
     private String password;
 
+//    @Enumerated(EnumType.STRING)
+//    @Builder.Default
+//    private UserRoles role = UserRoles.CUSTOMER;
+
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
+    @Column(name = "role")
     @Builder.Default
-    private UserRoles role = UserRoles.CUSTOMER;
+    private Set<UserRoles> roles = new HashSet<>(Set.of(UserRoles.CUSTOMER));
 
     @Enumerated(EnumType.STRING)
     @Column(name = "auth_provider", nullable = false)

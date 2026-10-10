@@ -1,0 +1,2 @@
+ALTER TABLE user_documents ADD COLUMN external_verification_id VARCHAR(255);
+CREATE INDEX idx_user_documents_external_verification_id ON user_documents(external_verification_id)

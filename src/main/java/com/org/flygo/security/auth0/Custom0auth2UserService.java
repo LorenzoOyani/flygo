@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Service
@@ -53,8 +54,8 @@ public class Custom0auth2UserService extends DefaultOAuth2UserService {
         UserEntity newUser = UserEntity.builder()
                 .email(email)
                 .fullName(fullName != null ? fullName : email)
-                .password(null) // no password for OAuth users
-                .role(UserRoles.CUSTOMER)
+                .password(null)
+                .roles(Set.of(UserRoles.CUSTOMER))
                 .status(OnBoardingState.DOCUMENTS_REQUIRED)
                 .authProvider(AuthProvider.GOOGLE)
                 .build();

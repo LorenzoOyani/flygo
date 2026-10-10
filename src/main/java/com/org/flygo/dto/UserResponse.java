@@ -7,7 +7,7 @@ public record UserResponse(
         UUID id,
         String fullName,
         String email,
-        UserRoles role,
+        java.util.Set<UserRoles> role,
         OnBoardingState status
 
 ) {

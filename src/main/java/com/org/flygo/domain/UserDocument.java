@@ -10,8 +10,6 @@ import lombok.*;
 @Table(
         name = "user_documents",
         uniqueConstraints = {
-                // A user can only have ONE document row per document type.
-                // Re-uploading the same type UPDATES this row, not a new insert.
                 @UniqueConstraint(name = "uk_user_document_type", columnNames = {"user_id", "document_type"})
         }
 )
@@ -41,6 +39,9 @@ public class UserDocument extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private DocumentStatus status;
+
+    @Column(name = "external_verification_id")
+    private String externalVerificationId;
 
     private String rejectionReason;
 }

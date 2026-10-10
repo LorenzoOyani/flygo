@@ -38,7 +38,7 @@ public class UserController {
                 user.getId(),
                 user.getFullName(),
                 user.getEmail(),
-                user.getRole(),
+                user.getRoles(),
                 user.getStatus()
         );
 

@@ -49,7 +49,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponse register(SignUpRequest request) {
-        if (userRepository.existsByEmail(request.email())) {
+        String email = request.email().trim().toLowerCase(Locale.ROOT);
+
+        if (userRepository.existsByEmail(email)) {
             throw new UserAlreadyExists("user already exits");
         }
         User user = User.builder()
@@ -118,8 +120,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResponse refreshToken(@NotBlank String refreshToken) {
-        LoginResponse response = refreshTokenService.refresh(refreshToken);
+    public AuthResponse refreshToken(@NotBlank String accessToken) {
+        LoginResponse response = refreshTokenService.refresh(accessToken);
 
         return new AuthResponse(
                 response.id(),

@@ -7,11 +7,13 @@ import com.org.flygo.domain.UserEntity;
 import com.org.flygo.dto.DocumentStatus;
 import com.org.flygo.dto.DocumentType;
 import com.org.flygo.dto.OnBoardingState;
+import com.org.flygo.dto.VerificationResult;
 import com.org.flygo.exception.DocumentNotFoundException;
 import com.org.flygo.exception.UserNotFoundException;
 import com.org.flygo.persistence.UserDocumentRepository;
 import com.org.flygo.persistence.UserRepository;
 import com.org.flygo.service.DocumentService;
+import com.org.flygo.service.DocumentVerificationService;
 import com.org.flygo.util.FileValidator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final UserDocumentRepository userDocumentRepository;
     private final UserRepository userRepository;
     private final Cloudinary cloudinary;
+    private final DocumentVerificationService documentVerificationService;
 
     @Override
     @Transactional
@@ -82,19 +85,52 @@ public class DocumentServiceImpl implements DocumentService {
 
         logger.info("Document {} uploaded for user {}", documentType, userId);
 
-        advanceOnboardingStatusIfNeeded(user);
+
+//        advanceOnboardingStatusIfNeeded(user);
+
+        VerificationResult verificationResult = documentVerificationService.verify(document);
+        applyVerification(document, verificationResult);
+
+        syncOnboardingStatus(user);
 
         return document;
 
     }
 
-    private void advanceOnboardingStatusIfNeeded(UserEntity user) {
-        if (user.getStatus() == OnBoardingState.DOCUMENTS_REQUIRED) {
-            user.setStatus(OnBoardingState.DOCUMENTS_SUBMITTED);  // grants dashboard access
-            userRepository.save(user);
-            // The Document itself still sits as PENDING_REVIEW — reviewed separately, doesn't block access
-        }
+    private void syncOnboardingStatus(UserEntity user) {
+        boolean hasApprovedDocument = userDocumentRepository.findAllByUser(user).stream()
+                .anyMatch(d -> d.getStatus() == DocumentStatus.APPROVED);
+
+        user.setStatus(hasApprovedDocument
+                ? OnBoardingState.DOCUMENTS_SUBMITTED
+                : OnBoardingState.DOCUMENTS_REQUIRED);
+        userRepository.save(user);
     }
+
+    private void applyVerification(UserDocument document, VerificationResult verificationResult) {
+
+        switch (verificationResult.verificationOutcome()){
+
+            case APPROVED ->document.setStatus(DocumentStatus.APPROVED);
+            case REJECTED -> {
+                document.setStatus(DocumentStatus.REJECTED);
+                document.setRejectionReason(verificationResult.reason());
+            }
+
+
+            case NEEDS_MANUAL_REVIEW -> document.setStatus(DocumentStatus.PENDING_REVIEW);
+        }
+
+        userDocumentRepository.save(document);
+
+    }
+
+//    private void advanceOnboardingStatusIfNeeded(UserEntity user) {
+//        if (user.getStatus() == OnBoardingState.DOCUMENTS_REQUIRED) {
+//            user.setStatus(OnBoardingState.DOCUMENTS_SUBMITTED);  // grants dashboard access
+//            userRepository.save(user);
+//        }
+//    }
 
     @Override
 

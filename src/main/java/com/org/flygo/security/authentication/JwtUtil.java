@@ -10,11 +10,12 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class JwtUtil {
-
 
     private final SecretKey signingKey;
 
@@ -24,9 +25,13 @@ public class JwtUtil {
     public String generateToken(UserEntity user) {
         Instant now = Instant.now();
 
+        List<String> roleNames = user.getRoles().stream()
+                .map(Enum::name)
+                .collect(Collectors.toList());
+
         return Jwts.builder()
                 .subject(user.getEmail())
-                .claim("role", user.getRole().name())
+                .claim("roles", roleNames)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusMillis(accessTokenExpiryMs)))
                 .signWith(signingKey)
@@ -40,5 +45,4 @@ public class JwtUtil {
                 .parseSignedClaims(token)
                 .getPayload();
     }
-
 }
