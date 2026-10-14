@@ -116,7 +116,7 @@ public class SecurityConfiguration {
                         .anyRequest().authenticated())
 
                 .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo.userService(custom0auth2UserService))
+                        .userInfoEndpoint(userInfo -> userInfo.oidcUserService(custom0auth2UserService))
                         .successHandler(oauthLoginHandler)
                         .failureHandler(oauthFailureLoginHandler)
                 )

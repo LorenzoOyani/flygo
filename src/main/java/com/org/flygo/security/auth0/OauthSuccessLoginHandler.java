@@ -7,8 +7,11 @@ import com.org.flygo.service.RefreshTokenService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -20,11 +23,15 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Locale;
+import java.util.Optional;
 
 
 @Component
 @RequiredArgsConstructor
 public class OauthSuccessLoginHandler extends SimpleUrlAuthenticationSuccessHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(OauthSuccessLoginHandler.class);
 
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
@@ -35,31 +42,37 @@ public class OauthSuccessLoginHandler extends SimpleUrlAuthenticationSuccessHand
 
     @Override
     public void onAuthenticationSuccess(
-           @NonNull HttpServletRequest request,
-           @NonNull   HttpServletResponse response,
-           @NonNull    Authentication authentication
-    )throws IOException {
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull Authentication authentication
+    ) throws IOException {
 
-            String email = null;
+        if (!(authentication.getPrincipal() instanceof OAuth2User oAuth2User)) {
+            fail(request, response, "OAuth2 login succeeded but the principal was not an OAuth2User");
+            return;
+        }
 
-            final OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-            if(oAuth2User == null) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            }else {
+        String rawEmail = oAuth2User.getAttribute("email");
+        String email = rawEmail == null ? null : rawEmail.trim().toLowerCase(Locale.ROOT);
 
-                email = oAuth2User.getAttribute("email");
-            }
-            UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(()->new IllegalArgumentException("email not found"));
+        Optional<UserEntity> found = email == null
+                ? Optional.empty()
+                : userRepository.findByEmail(email);
 
-            String accessToken = jwtUtil.generateToken(user);
-            String refreshToken = refreshTokenService.createRefreshToken(user);
+        if (found.isEmpty()) {
+            fail(request, response, "OAuth2 login succeeded but no matching user exists");
+            return;
+        }
+        UserEntity user = found.get();
+
+        String accessToken = jwtUtil.generateToken(user);
+        String refreshToken = refreshTokenService.createRefreshToken(user);
 
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
                 .secure(true)
                 .path("/api/v1/auth")
-                .maxAge(Duration.ofMinutes(10))
+                .maxAge(Duration.ofDays(30))
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
@@ -67,11 +80,16 @@ public class OauthSuccessLoginHandler extends SimpleUrlAuthenticationSuccessHand
                 .queryParam("accessToken", accessToken)
                 .build().toUriString();
 
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
-
-
     }
 
-
-
+    private void fail(HttpServletRequest request, HttpServletResponse response, String message) throws IOException {
+        logger.error(message);
+        getRedirectStrategy().sendRedirect(request, response, redirectUri + "?error=oauth2_failed");
+    }
 }
