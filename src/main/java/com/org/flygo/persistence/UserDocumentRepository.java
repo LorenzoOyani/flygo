@@ -5,7 +5,6 @@ import com.org.flygo.domain.UserEntity;
 import com.org.flygo.dto.DocumentType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.lang.ScopedValue;
 import java.util.List;
 import java.util.Optional;
 

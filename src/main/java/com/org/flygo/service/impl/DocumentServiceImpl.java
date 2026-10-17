@@ -85,9 +85,6 @@ public class DocumentServiceImpl implements DocumentService {
 
         logger.info("Document {} uploaded for user {}", documentType, userId);
 
-
-//        advanceOnboardingStatusIfNeeded(user);
-
         VerificationResult verificationResult = documentVerificationService.verify(document);
         applyVerification(document, verificationResult);
 
@@ -125,12 +122,6 @@ public class DocumentServiceImpl implements DocumentService {
 
     }
 
-//    private void advanceOnboardingStatusIfNeeded(UserEntity user) {
-//        if (user.getStatus() == OnBoardingState.DOCUMENTS_REQUIRED) {
-//            user.setStatus(OnBoardingState.DOCUMENTS_SUBMITTED);  // grants dashboard access
-//            userRepository.save(user);
-//        }
-//    }
 
     @Override
 
